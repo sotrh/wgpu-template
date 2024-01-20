@@ -6,12 +6,12 @@ use resources::fs::{load_json, save_json};
 use winit::{
     event::{DeviceEvent, ElementState, Event, MouseScrollDelta, StartCause, WindowEvent},
     event_loop::EventLoop,
-    window::WindowBuilder,
 };
 
 pub mod context;
 pub mod demo;
 pub mod resources;
+mod window;
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Config {
@@ -43,24 +43,23 @@ pub async fn run() -> anyhow::Result<()> {
     };
 
     let event_loop = EventLoop::new()?;
-    let window = WindowBuilder::new()
-        .with_visible(false)
-        .build(&event_loop)?;
+    let window = window::Window::new(&config, &event_loop)?;
 
-    let mut context = Context::new(&config, window).await?;
+    let mut context = Context::new(&window).await?;
     let mut demo = Demo::new(&context, config.width, config.height)?;
 
     let config = Rc::new(RefCell::new(config));
     let final_config = config.clone();
 
+    let window = &window;
     event_loop.run(move |event, target| {
-        if !demo.running || !context.is_running() {
+        if !demo.running {
             target.exit();
         }
 
         match event {
             Event::NewEvents(StartCause::Init) => {
-                context.show();
+                window.show();
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::ActivationTokenDone { serial, token } => {
@@ -122,7 +121,7 @@ pub async fn run() -> anyhow::Result<()> {
             // winit::event::Event::AboutToWait => todo!(),
             // winit::event::Event::MemoryWarning => todo!(),
             Event::LoopExiting => {
-                context.modify_config(&mut final_config.borrow_mut());
+                window.modify_config(&mut final_config.borrow_mut());
             }
             _ => {}
         }

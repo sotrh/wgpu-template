@@ -40,7 +40,7 @@ impl<T: bytemuck::Pod + bytemuck::Zeroable> CpuBuffer<T> {
 
 pub struct BufferBatch<'a, T: bytemuck::Pod + bytemuck::Zeroable> {
     pub(crate) buffer: &'a mut CpuBuffer<T>,
-    pub(crate) context: &'a Context,
+    pub(crate) context: &'a Context<'a>,
     pub(crate) start_index: u32,
 }
 
