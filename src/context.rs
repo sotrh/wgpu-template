@@ -18,10 +18,13 @@ impl<'a> Context<'a> {
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 compatible_surface: Some(&surface),
+                power_preference: wgpu::PowerPreference::HighPerformance,
                 ..Default::default()
             })
             .await
             .context("No valid adapter")?;
+
+        println!("info: {:?}", adapter.get_info());
 
         let (device, queue) = adapter
             .request_device(
